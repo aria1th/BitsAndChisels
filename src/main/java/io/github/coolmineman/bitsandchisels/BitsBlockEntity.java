@@ -53,7 +53,7 @@ public class BitsBlockEntity extends BlockEntity implements RenderAttachmentBloc
     public void writeNbt(NbtCompound tag) {
         super.writeNbt(tag);
         if (nbtCache == null) {
-            BitsAndChisels.LOGGER.error("NbtCache should not be null!");
+            //BitsAndChisels.LOGGER.error("NbtCache should not be null!");
             BitNbtUtil.write3DBitArray(tag, states);
         } else {
             tag.copyFrom(nbtCache);
