@@ -15,7 +15,7 @@ public class Buildscript extends SimpleFabricProject {
 
     @Override
     public VersionMeta createMcVersion() {
-        return Minecraft.getVersion("1.19-rc2");
+        return Minecraft.getVersion("1.19.2");
     }
 
     @Override
@@ -25,7 +25,7 @@ public class Buildscript extends SimpleFabricProject {
 
     @Override
     public MappingTree createMappings() {
-        return Yarn.ofMaven(FabricMaven.URL, FabricMaven.yarn("1.19-rc2+build.1")).tree;
+        return Yarn.ofMaven(FabricMaven.URL, FabricMaven.yarn("1.19.2+build.1")).tree;
     }
 
     @Override
