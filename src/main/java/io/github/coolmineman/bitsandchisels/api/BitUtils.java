@@ -40,9 +40,8 @@ public class BitUtils {
 
     public static void update(World world, BlockPos block) {
         BlockEntity e1 = world.getBlockEntity(block);
-        if (e1 instanceof BitsBlockEntity) {
-            BitsBlockEntity e = (BitsBlockEntity) e1;
-            e.rebuildServer();
+        if (e1 instanceof BitsBlockEntity e) {
+	        e.rebuildServer();
             e.sync();
         }
     }
@@ -65,16 +64,14 @@ public class BitUtils {
         if (player instanceof ServerPlayerEntity && !StupidUtil.canBreak((ServerPlayerEntity) player, block)) return false;
         World world = player.getEntityWorld();
         if (!world.canSetBlock(block)) return false;
-        if (!world.canPlayerModifyAt(player, block)) return false;
-        return true;
+	    return world.canPlayerModifyAt(player, block);
     }
 
     public static @Nullable BlockState getBit(World world, BlockPos block, int x, int y, int z) {
         BlockState state = world.getBlockState(block);
         BlockEntity e1 = world.getBlockEntity(block);
-        if (e1 instanceof BitsBlockEntity) {
-            BitsBlockEntity e = (BitsBlockEntity) e1;
-            return e.getState(x, y, z);
+        if (e1 instanceof BitsBlockEntity e) {
+	        return e.getState(x, y, z);
         } else if (!state.isOf(BitsAndChisels.BITS_BLOCK) && canBeChiseled(state, world, block) && state.isFullCube(world, block)) {
             return state;
         }

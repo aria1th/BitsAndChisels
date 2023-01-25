@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
@@ -24,6 +25,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 public class BitItem extends Item implements ServerPlayNetworking.PlayChannelHandler {
@@ -57,7 +59,7 @@ public class BitItem extends Item implements ServerPlayNetworking.PlayChannelHan
             // Execute on the main thread
             if (
                 player.getStackInHand(hand).getItem() == BitsAndChisels.BIT_ITEM &&
-                player.getBlockPos().getSquaredDistance(pos) < 81 &&
+                player.getBlockPos().getSquaredDistance(pos) < 196 &&
                 x1 <= x2 && y1 <= y2 && z1 <= z2 &&
                 ((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)) + ((z2 - z1) * (z2 - z1)) <= 1000000
             ) {
@@ -178,13 +180,38 @@ public class BitItem extends Item implements ServerPlayNetworking.PlayChannelHan
         BlockPos pos = context.getBlockPos();
         MinecraftClient client = MinecraftClient.getInstance();
         HitResult hit = client.crosshairTarget;
-            
-        if (hit.getType() == HitResult.Type.BLOCK) {
+	    boolean isRemote = context.getHitPos().getX() - context.getBlockPos().getX() >= 62;
+        if (hit.getType() == HitResult.Type.BLOCK || isRemote) {
             Direction direction = ((BlockHitResult)hit).getSide();
-            int x = ((int) Math.floor(((hit.getPos().getX() - pos.getX()) * 16) + (direction.getOffsetX() * -0.5d))) + direction.getOffsetX();
-            int y = ((int) Math.floor(((hit.getPos().getY() - pos.getY()) * 16) + (direction.getOffsetY() * -0.5d))) + direction.getOffsetY();
-            int z = ((int) Math.floor(((hit.getPos().getZ() - pos.getZ()) * 16) + (direction.getOffsetZ() * -0.5d))) + direction.getOffsetZ();
+			int x = 0;
+			int y = 0;
+			int z = 0;
+			if (!isRemote){
+				x = ((int) Math.floor(((hit.getPos().getX() - pos.getX()) * 16) + (direction.getOffsetX() * -0.5d))) + direction.getOffsetX();
+				y = ((int) Math.floor(((hit.getPos().getY() - pos.getY()) * 16) + (direction.getOffsetY() * -0.5d))) + direction.getOffsetY();
+				z = ((int) Math.floor(((hit.getPos().getZ() - pos.getZ()) * 16) + (direction.getOffsetZ() * -0.5d))) + direction.getOffsetZ();
+			}
+			if (isRemote){
+				x = (int) (context.getHitPos().getX() - 64 - context.getBlockPos().getX());
+				y = (int) context.getHitPos().getY()- context.getBlockPos().getY();
+				z = (int) context.getHitPos().getZ()- context.getBlockPos().getZ();
+				//System.out.println("Placing bit at " + pos.toShortString() + " " + x + " " + y + " " + z );
+				PacketByteBuf passedData = new PacketByteBuf(Unpooled.buffer());
+				passedData.writeBlockPos(pos);
+				passedData.writeInt(x);
+				passedData.writeInt(y);
+				passedData.writeInt(z);
+				passedData.writeInt(x);
+				passedData.writeInt(y);
+				passedData.writeInt(z);
+				passedData.writeBoolean(context.getHand().equals(Hand.MAIN_HAND));
+				ClientPlayNetworking.send(PACKET_ID, passedData);
+				return ActionResult.SUCCESS;
+			}
 
+			if (isRemote){
+				return ActionResult.PASS;
+			}
             if (x > 15) {
                 pos = pos.add(1, 0, 0);
                 x -= 16;
@@ -210,7 +237,7 @@ public class BitItem extends Item implements ServerPlayNetworking.PlayChannelHan
                 z += 16;
             }
 
-            if (BitUtils.canPlace(context.getPlayer(), pos, x, y, z)) {
+            if (x <= 15 && y <= 15 && z <= 15 && BitUtils.canPlace(context.getPlayer(), pos, x, y, z)) {
                 if (context.getPlayer().isSneaking()) {
                     if (haspos1) {
                         PacketByteBuf passedData = new PacketByteBuf(Unpooled.buffer());

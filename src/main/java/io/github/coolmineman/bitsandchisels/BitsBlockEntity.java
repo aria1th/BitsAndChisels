@@ -22,6 +22,8 @@ import net.minecraft.util.shape.BitSetVoxelSet;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 
+import java.util.Arrays;
+
 public class BitsBlockEntity extends BlockEntity implements RenderAttachmentBlockEntity {
     private BlockState[][][] states;
     @Environment(EnvType.CLIENT)
@@ -53,6 +55,9 @@ public class BitsBlockEntity extends BlockEntity implements RenderAttachmentBloc
 
     @Override
     public void writeNbt(NbtCompound tag) {
+	    if (tag == null){
+		    return;
+	    }
         super.writeNbt(tag);
         if (!alive) return;
         if (nbtCache == null) {
@@ -65,8 +70,17 @@ public class BitsBlockEntity extends BlockEntity implements RenderAttachmentBloc
 
     @Override
     public void readNbt(NbtCompound tag) {
+		if (tag == null){
+			return;
+		}
         super.readNbt(tag);
-        BitNbtUtil.read3DBitArray(tag, states);
+		try {
+			BitNbtUtil.read3DBitArray(tag, states);
+		}
+		catch (Exception e){
+			System.out.println(tag);
+			return;
+		}
         rebuildShape();
         if (getWorld() != null && getWorld().isClient) {
             postFromClientTag();

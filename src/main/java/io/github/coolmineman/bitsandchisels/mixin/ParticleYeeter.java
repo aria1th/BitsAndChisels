@@ -15,7 +15,8 @@ import net.minecraft.util.math.Direction;
 
 @Mixin(ParticleManager.class)
 public class ParticleYeeter {
-    @Shadow ClientWorld world;
+    @Shadow
+    protected ClientWorld world;
 
     @Inject(method = "addBlockBreakParticles", at = @At("HEAD"), cancellable = true)
     public void yeet(BlockPos pos, BlockState state, CallbackInfo yeet) {
